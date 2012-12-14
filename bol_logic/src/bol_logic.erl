@@ -1,11 +1,11 @@
 -module( bol_logic ).
 -vsn( "1.0.0" ).
--export( [new/1, move/2, put/2, tileAt/2] ).
+-export( [new/1, move/2, put/2, tileAt/2, size/1, words/3, words/2] ).
 
 new( {Width, Height} ) ->
   {{Width, Height}, dict:new()}.
 
-size( {{Width, Height} Dict} ) ->
+size( {{Width, Height}, _} ) ->
   {Width, Height}.
 
 put( {Bounds, Dict}, [{Position, Value} | Tail] ) ->
@@ -47,34 +47,36 @@ move( Board, Tiles ) ->
     Other -> Other
   end.
 
-words( Board, Index, Horizontal ) ->
-  case Horizontal of
-    true ->
-      words( Board, {Index, 0}, {1, 0}, [], [] );
-    false ->
-      words( Board, {0, Index}, {0, 1}, [], [] )
+words( Board, Tiles ) -> 
+  Horizontal = lists:usort( [X || {{X, _}, _} <- Tiles] ),
+  Vertical = lists:usort( [Y || {{_, Y}, _} <- Tiles] ), 
+  lists:flatmap( fun( Index ) -> words( Board, Index, horizontal ) end, Horizontal ) ++
+  lists:flatmap( fun( Index ) -> words( Board, Index, vertical )  end, Vertical ).
+
+words( Board, Index, Direction ) ->
+  case Direction of
+    horizontal ->
+      lists:filter( fun( W ) -> length( W ) > 1 end,  words( Board, {0, Index}, {1, 0}, [], [] ) );
+    vertical ->
+      lists:filter( fun( W ) -> length( W ) > 1 end, words( Board, {Index, 0}, {0, 1}, [], [] ) )
   end.
 
-words( Board, {X, Y}, {Dx, Dy}, [], Result ) ->
-  {Width, Height} = size( Board ),
-  if
-    X >= Dx; Y >= Dy ->
-      Result;
-    true ->
-      case tileAt( Board, {X, Y} ) of
-        none -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [], Result );
-        Tile -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [Tile], Result )
-      end
-  end;
-
 words( Board, {X, Y}, {Dx, Dy}, Current, Result ) ->
-  {Width, Height} = size( Board ),
+  {Width, Height} = bol_logic:size( Board ),
   if
-    X >= Dx; Y >= Dy ->
-      [Current | Result]
+    X >= Width; Y >= Height ->
+      if 
+        Current =:= [] -> Result;
+        true -> Result ++ [Current]
+      end;
     true ->
-      case tileAt( Board, {X, Y} ) of
-        none -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [], [Current | Result] );
-        Tile -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [Tile | Current], Result )
+      Tile = tileAt( Board, {X, Y} ),
+      if 
+        Tile =:= none; Tile =:= gray ->
+          if 
+            Current =:= [] -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [], Result );
+            true -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [], Result ++ [Current] )
+          end;
+        true -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, Current ++ [Tile], Result )
       end
   end.
