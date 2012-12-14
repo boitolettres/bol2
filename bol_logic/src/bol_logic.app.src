@@ -1,0 +1,14 @@
+{application, bol_logic,
+ [
+  {description, ""},
+  {vsn, "1.0.0"},
+  {modules, [bol_logic]},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { bol_logic_app, []}},
+  {env, []}
+ ]}.
+
