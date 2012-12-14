@@ -54,20 +54,20 @@ words( Board, Tiles ) ->
   lists:flatmap( fun( Index ) -> words( Board, Index, vertical )  end, Vertical ).
 
 words( Board, Index, Direction ) ->
+  {Width, Height} = bol_logic:size( Board ),
   case Direction of
     horizontal ->
-      lists:filter( fun( W ) -> length( W ) > 1 end,  words( Board, {0, Index}, {1, 0}, [], [] ) );
+      lists:filter( fun( W ) -> length( W ) > 1 end,  words( Board, {Width - 1, Index}, {-1, 0}, [], [] ) );
     vertical ->
-      lists:filter( fun( W ) -> length( W ) > 1 end, words( Board, {Index, 0}, {0, 1}, [], [] ) )
+      lists:filter( fun( W ) -> length( W ) > 1 end, words( Board, {Index, Height - 1}, {0, -1}, [], [] ) )
   end.
 
 words( Board, {X, Y}, {Dx, Dy}, Current, Result ) ->
-  {Width, Height} = bol_logic:size( Board ),
   if
-    X >= Width; Y >= Height ->
+    X < 0; Y < 0 ->
       if 
         Current =:= [] -> Result;
-        true -> Result ++ [Current]
+        true -> [Current | Result]
       end;
     true ->
       Tile = tileAt( Board, {X, Y} ),
@@ -75,8 +75,8 @@ words( Board, {X, Y}, {Dx, Dy}, Current, Result ) ->
         Tile =:= none; Tile =:= gray ->
           if 
             Current =:= [] -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [], Result );
-            true -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [], Result ++ [Current] )
+            true -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [], [Current | Result] )
           end;
-        true -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, Current ++ [Tile], Result )
+        true -> words( Board, {X + Dx, Y + Dy}, {Dx, Dy}, [Tile | Current], Result )
       end
   end.
