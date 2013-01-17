@@ -22,8 +22,20 @@ tileAt_test_() ->
 words_test_() ->
   B0 = bol_logic:new( {10, 10} ), 
   Tiles = [{{3, 2}, "d"}, {{3, 3}, "o"}, {{3, 4}, "t"}, {{2, 3}, "g"}, 
-          {{4, 3}, "l"}, {{5, 3}, gray}, {{6, 3}, "h"}, {{7, 3}, "i"}],
-  {ok, B1} = bol_logic:put( B0, Tiles ),
+           {{4, 3}, "l"}, {{5, 3}, gray}, {{6, 3}, "h"}, {{7, 3}, "i"}],
+  {ok, B1} = bol_logic:put( B0, Tiles ), 
   [ ?_assertMatch( [["g", "o", "l"], ["h", "i"]], bol_logic:words( B1, 3, horizontal ) ), 
     ?_assertMatch( [["d", "o", "t"]], bol_logic:words( B1, 3, vertical ) ), 
     ?_assertMatch( [["g", "o", "l"], ["h", "i"], ["d", "o", "t"]], bol_logic:words( B1, Tiles ) ) ]. 
+
+connected_test_() ->
+  B0 = bol_logic:new( {10, 10} ), 
+  T1 = [{{3, 2}, "d"}, {{3, 3}, "o"}, {{3, 4}, "t"}, {{2, 3}, "g"}, 
+        {{4, 3}, "l"}, {{5, 3}, gray}, {{6, 3}, "h"}, {{7, 3}, "i"}],
+  T2 = [{{3, 2}, "d"}, {{3, 3}, "o"}, {{3, 4}, "t"}, {{2, 3}, "g"}, 
+        {{4, 3}, "l"}, {{5, 3}, gray}],
+  {ok, B1} = bol_logic:put( B0, T1 ), 
+  {ok, B2} = bol_logic:put( B0, T2 ), 
+  bol_logic:connected( B2 ),
+  [ ?_assertEqual( false, bol_logic:connected( B1 ) ),
+    ?_assertEqual( true, bol_logic:connected( B2 ) )].
